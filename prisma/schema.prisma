@@ -1,0 +1,83 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Group {
+  groupId     String   @id @default(uuid())
+  groupName   String
+  groupOwner  String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  groupTags   GroupTag[]
+}
+
+model GroupTag {
+  id       Int     @id @default(autoincrement())
+  tag      String
+  groupId  String
+  group    Group   @relation(fields: [groupId], references: [groupId], onDelete: Cascade)
+}
+
+model Team {
+  teamId      String   @id @default(uuid())
+  teamName    String
+  teamOwner   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  teamTags    TeamTag[]
+  teamMembers TeamMember[]
+  projectIds  ProjectAssignment[]
+}
+
+model TeamTag {
+  id       Int     @id @default(autoincrement())
+  tag      String
+  teamId   String
+  team     Team    @relation(fields: [teamId], references: [teamId], onDelete: Cascade)
+}
+
+model TeamMember {
+  id      Int     @id @default(autoincrement())
+  member  String
+  teamId  String
+  team    Team    @relation(fields: [teamId], references: [teamId], onDelete: Cascade)
+}
+
+model ProjectAssignment {
+  id        Int     @id @default(autoincrement())
+  projectId String
+  teamId    String
+  team      Team    @relation(fields: [teamId], references: [teamId], onDelete: Cascade)
+}
+
+model Project {
+  projectId       String         @id @default(uuid())
+  projectName     String
+  projectOwner    String
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  billingIds      Billing[]
+  status          ProjectStatus  @default(ACTIVE)
+  startDate       DateTime?
+  endDate         DateTime?
+  renewalHistory  Json           @default("[]") 
+}
+
+enum ProjectStatus {
+  ACTIVE
+  INACTIVE
+  COMPLETED
+  SUSPENDED
+}
+
+model Billing {
+  id         Int     @id @default(autoincrement())
+  billingId  String
+  projectId  String
+  project    Project @relation(fields: [projectId], references: [projectId], onDelete: Cascade)
+}
