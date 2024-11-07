@@ -8,5 +8,6 @@ router.get('/get-all-projects', getAllProjects);
 router.get('/get-project-by-id/:projectId', getProjectById);
 router.post('/renew-project/:projectId', renewProjectByProjectId);
 router.put('/update-project/:projectId', updateProjectDetails);
+router.get('/get-project-by-project-owner/:projectOwner', getProjectsByProjectOwner)
 
 export default router;

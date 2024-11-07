@@ -26,3 +26,56 @@ export const createTeamService = async (
         include: { teamTags: true, teamMembers: true, projectIds: true }
     });
 };
+
+export const checkIfProjectsExist = async (projectIds: string[]) => {
+    const projects = await prisma.project.findMany({
+        where: {
+            projectId: {
+                in: projectIds,
+            }
+        },
+        select: {
+            projectId: true,
+        }
+    });
+    const existingProjectIds = projects.map(project => project.projectId);
+    const nonExistentProjectIds = projectIds.filter(id => !existingProjectIds.includes(id));
+    return {
+        existingProjectIds,
+        nonExistentProjectIds
+    };
+};
+
+export const getAllTeamsService = async () => {
+    return await prisma.team.findMany({
+        include: {
+            teamTags: true,
+            teamMembers: true,
+            projectIds: true
+        }
+    });
+};
+
+export const getTeamByOwnerService = async (teamOwner: string) => {
+    return await prisma.team.findMany({
+        where: {
+            teamOwner,
+        },
+        include: {
+            teamTags: true,
+            teamMembers: true,
+            projectIds: true,
+        },
+    });
+};
+
+export const getTeamByIdService = async (teamId: string) => {
+    return await prisma.team.findUnique({
+        where: { teamId },
+        include: {
+            teamTags: true,
+            teamMembers: true,
+            projectIds: true,
+        },
+    });
+};
