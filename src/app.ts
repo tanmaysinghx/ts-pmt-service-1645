@@ -5,6 +5,7 @@ import projectRoutes from './routes/projectRoutes';
 import groupRoutes from './routes/groupRoutes';
 import teamRoutes from './routes/teamRoutes';
 import { loggerConsole } from './middleware/loggerConsole';
+import ticketRoutes from './routes/ticketRoutes';
 
 const app = express();
 
@@ -24,5 +25,6 @@ app.use(loggerConsole);
 app.use('/v2/api/group', groupRoutes);
 app.use('/v2/api/team', teamRoutes);
 app.use('/v2/api/project', projectRoutes);
+app.use('/v2/api/ticket', ticketRoutes);
 
 export default app;

@@ -6,11 +6,15 @@ interface CustomRequest extends Request {
     transactionId?: string;
 }
 
+/* Controller to create team */
 export const createTeam = async (req: CustomRequest, res: Response): Promise<any> => {
     const transactionId = req.transactionId;
-    const { teamName, teamOwner, teamTags, teamMembers, projectIds } = req.body;
+    const { teamName, teamOwner, teamTags, teamMembers, projectIds, teamSize, teamRole, teamDescription } = req.body;
     try {
-        if (!projectIds || projectIds.length === 0) {
+        if (!teamName || !teamOwner || !teamTags || !teamMembers || !projectIds || !teamSize || !teamRole) {
+            return res.status(400).json(errorResponse('All required fields must be provided', 'Validation error', transactionId));
+        }
+        if (projectIds.length === 0) {
             return res.status(400).json(errorResponse('Project IDs are required', 'Validation error', transactionId));
         }
         const { existingProjectIds, nonExistentProjectIds } = await checkIfProjectsExist(projectIds);
@@ -23,14 +27,25 @@ export const createTeam = async (req: CustomRequest, res: Response): Promise<any
                 )
             );
         }
-        const team = await createTeamService(teamName, teamOwner, teamTags, teamMembers, existingProjectIds);
+        const team = await createTeamService(
+            teamName,
+            teamOwner,
+            teamTags,
+            teamMembers,
+            existingProjectIds,
+            teamSize,
+            teamRole,
+            teamDescription
+        );
         return res.status(201).json(successResponse(team, "Team is successfully created", transactionId));
     } catch (error: any) {
         const errorMessage = error?.message || 'Team creation failed';
+        console.error(errorMessage, error);
         return res.status(400).json(errorResponse(errorMessage, "Team creation error", transactionId));
     }
 };
 
+/* Controller to get all teams */
 export const getAllTeamsController = async (req: CustomRequest, res: Response): Promise<void> => {
     const transactionId = req.transactionId;
     try {
@@ -46,6 +61,7 @@ export const getAllTeamsController = async (req: CustomRequest, res: Response): 
     }
 };
 
+/* Controller to get team by team owner */
 export const getTeamByOwnerController = async (req: CustomRequest, res: Response): Promise<void> => {
     const transactionId = req.transactionId;
     const { teamOwner } = req.params;
@@ -62,6 +78,7 @@ export const getTeamByOwnerController = async (req: CustomRequest, res: Response
     }
 };
 
+/* Controller to get team by team id */
 export const getTeamByIdController = async (req: CustomRequest, res: Response): Promise<void> => {
     const transactionId = req.transactionId;
     const { teamId } = req.params;

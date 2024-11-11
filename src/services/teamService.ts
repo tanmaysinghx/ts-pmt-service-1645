@@ -1,32 +1,52 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, TeamRole } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+/* Function to create a team */
 export const createTeamService = async (
     teamName: string,
     teamOwner: string,
     teamTags: string[],
-    teamMembers: string[],
-    projectIds: string[]
+    teamMembers: { userId: string, role: string }[],
+    projectIds: string[],
+    teamSize: number,
+    teamRole: TeamRole,
+    teamDescription?: string
 ) => {
-    return await prisma.team.create({
-        data: {
-            teamName,
-            teamOwner,
-            teamTags: {
-                create: teamTags.map(tag => ({ tag }))
+    try {
+        return await prisma.team.create({
+            data: {
+                teamName,
+                teamOwner,
+                teamDescription,
+                teamSize,
+                teamRole,
+                teamTags: {
+                    create: teamTags.map(tag => ({ tag }))
+                },
+                teamMembers: {
+                    create: teamMembers.map(member => ({
+                        member: member.userId,
+                        role: member.role
+                    }))
+                },
+                projectIds: {
+                    create: projectIds.map(projectId => ({ projectId }))
+                }
             },
-            teamMembers: {
-                create: teamMembers.map(member => ({ member }))
-            },
-            projectIds: {
-                create: projectIds.map(projectId => ({ projectId }))
+            include: {
+                teamTags: true,
+                teamMembers: true,
+                projectIds: true
             }
-        },
-        include: { teamTags: true, teamMembers: true, projectIds: true }
-    });
+        });
+    } catch (error) {
+        console.error('Error creating team:', error);
+        throw new Error('Error creating team');
+    }
 };
 
+/* Function to check if project exist */
 export const checkIfProjectsExist = async (projectIds: string[]) => {
     const projects = await prisma.project.findMany({
         where: {
@@ -46,6 +66,7 @@ export const checkIfProjectsExist = async (projectIds: string[]) => {
     };
 };
 
+/* Function to get all teams */
 export const getAllTeamsService = async () => {
     return await prisma.team.findMany({
         include: {
@@ -56,6 +77,7 @@ export const getAllTeamsService = async () => {
     });
 };
 
+/* Function to get team by team owner */
 export const getTeamByOwnerService = async (teamOwner: string) => {
     return await prisma.team.findMany({
         where: {
@@ -69,6 +91,7 @@ export const getTeamByOwnerService = async (teamOwner: string) => {
     });
 };
 
+/* Function to get team by team id */
 export const getTeamByIdService = async (teamId: string) => {
     return await prisma.team.findUnique({
         where: { teamId },

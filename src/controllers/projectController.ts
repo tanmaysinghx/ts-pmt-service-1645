@@ -10,8 +10,8 @@ interface CustomRequest extends Request {
 export const createProject = async (req: CustomRequest, res: Response): Promise<void> => {
     const transactionId = req.transactionId;
     try {
-        const { projectName, projectOwner, billingIds } = req.body;
-        const project = await createProjectService(projectName, projectOwner, billingIds);
+        const { projectName, projectOwner, projectManager, projectDescription, startDate, endDate, budget, billingIds } = req.body;
+        const project = await createProjectService(projectName, projectOwner, projectManager, projectDescription, startDate, endDate, budget, billingIds);
         res.status(201).json(successResponse(project, "Project is successfully created", transactionId));
     } catch (error: any) {
         const errorMessage = error?.message || 'Project creation failed';

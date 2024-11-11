@@ -2,22 +2,42 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-/* Function to create project */
+/* Function to create projects */
 export const createProjectService = async (
     projectName: string,
     projectOwner: string,
-    billingIds: string[]
+    projectManager: string,
+    projectDescription: string | null,
+    startDate: Date | null,
+    endDate: Date | null,
+    budget: number | null,
+    billingIds: string[] = []
 ) => {
-    return await prisma.project.create({
-        data: {
-            projectName,
-            projectOwner,
-            billingIds: {
-                create: billingIds.map(billingId => ({ billingId }))
-            }
-        },
-        include: { billingIds: true }
-    });
+    try {
+        if (!Array.isArray(billingIds)) {
+            throw new Error("billingIds must be an array");
+        }
+        return await prisma.project.create({
+            data: {
+                projectName,
+                projectOwner,
+                projectManager,
+                projectDescription,
+                startDate,
+                endDate,
+                budget,
+                billingIds: {
+                    create: billingIds.map(billingId => ({
+                        billingId: billingId,
+                    }))
+                }
+            },
+            include: { billingIds: true },
+        });
+    } catch (error) {
+        console.error('Error creating project:', error);
+        throw new Error('Error creating project');
+    }
 };
 
 /* Function to get all projects */

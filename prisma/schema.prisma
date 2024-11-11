@@ -7,10 +7,41 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model ProjectAssignment {
+  id        Int     @id @default(autoincrement())
+  projectId String
+  teamId    String
+  team      Team    @relation(fields: [teamId], references: [teamId], onDelete: Cascade)
+}
+
+model Project {
+  projectId       String         @id @default(uuid())
+  projectName     String
+  projectOwner    String
+  projectDescription String?    
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  billingIds      Billing[]
+  status          ProjectStatus  @default(ACTIVE)
+  startDate       DateTime?
+  endDate         DateTime?
+  budget          Float?         
+  renewalHistory  Json           @default("[]")
+  projectManager  String         
+}
+
+enum ProjectStatus {
+  ACTIVE
+  INACTIVE
+  COMPLETED
+  SUSPENDED
+}
+
 model Group {
   groupId     String   @id @default(uuid())
   groupName   String
   groupOwner  String
+  groupDescription String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   groupTags   GroupTag[]
@@ -27,11 +58,14 @@ model Team {
   teamId      String   @id @default(uuid())
   teamName    String
   teamOwner   String
+  teamDescription String? 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   teamTags    TeamTag[]
   teamMembers TeamMember[]
   projectIds  ProjectAssignment[]
+  teamSize    Int     
+  teamRole    TeamRole
 }
 
 model TeamTag {
@@ -45,34 +79,16 @@ model TeamMember {
   id      Int     @id @default(autoincrement())
   member  String
   teamId  String
+  role    String 
   team    Team    @relation(fields: [teamId], references: [teamId], onDelete: Cascade)
 }
 
-model ProjectAssignment {
-  id        Int     @id @default(autoincrement())
-  projectId String
-  teamId    String
-  team      Team    @relation(fields: [teamId], references: [teamId], onDelete: Cascade)
-}
-
-model Project {
-  projectId       String         @id @default(uuid())
-  projectName     String
-  projectOwner    String
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  billingIds      Billing[]
-  status          ProjectStatus  @default(ACTIVE)
-  startDate       DateTime?
-  endDate         DateTime?
-  renewalHistory  Json           @default("[]") 
-}
-
-enum ProjectStatus {
-  ACTIVE
-  INACTIVE
-  COMPLETED
-  SUSPENDED
+enum TeamRole {
+  DEVELOPMENT
+  QA
+  DESIGN
+  MANAGER
+  SUPPORT
 }
 
 model Billing {
@@ -81,3 +97,198 @@ model Billing {
   projectId  String
   project    Project @relation(fields: [projectId], references: [projectId], onDelete: Cascade)
 }
+
+model Ticket {
+  ticketId          String         @id @default(uuid())
+  title             String
+  description       String
+  type              TicketType
+  priority          TicketPriority @default(medium)
+  status            TicketStatus   @default(new)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  resolvedAt        DateTime?
+  closedAt          DateTime?
+  dueDate           DateTime?
+  assignedToEmail   String?
+  createdByEmail    String
+  teamId            String?
+  groupId           String?
+  parentTicketId    String?
+  attachmentIds     Json?
+  impact            ImpactLevel    @default(medium)
+  urgency           UrgencyLevel   @default(medium)
+  serviceId         String?
+  categoryId        String?
+  subcategoryId     String?
+  slaId             String?
+  externalReference String?
+  customFields      Json?
+  Incident          Incident[]
+  comments          Comment[]
+  deletedAt         DateTime?      // for soft deletion
+}
+
+model Comment {
+  id        Int      @id @default(autoincrement())
+  content   String
+  ticketId  String
+  ticket    Ticket   @relation(fields: [ticketId], references: [ticketId], onDelete: Cascade)
+  authorEmail String
+  createdAt DateTime @default(now())
+}
+
+enum TicketType {
+  incident
+  problem
+  change
+  serviceRequest
+  task
+}
+
+enum TicketPriority {
+  low
+  medium
+  high
+  critical
+}
+
+enum TicketStatus {
+  new
+  assigned
+  inProgress
+  resolved
+  closed
+  onHold
+  waitingForApproval
+  awaitingUser
+}
+
+model Incident {
+  id                String   @id @default(uuid())
+  title             String                                 
+  description       String                                 
+  priority          IncidentPriority                       @default(medium) 
+  status            IncidentStatus                         @default(new)   
+  createdAt         DateTime @default(now())               
+  updatedAt         DateTime @updatedAt                    
+  resolvedAt        DateTime?                              
+  closedAt          DateTime?                              
+  dueDate           DateTime?                              
+  assignedToEmail   String?                                          
+  createdByEmail    String     
+  ticketId          String?   
+  ticket            Ticket?    @relation(fields: [ticketId], references: [ticketId], onDelete: Cascade)
+  impact            ImpactLevel                            @default(medium)  
+  urgency           UrgencyLevel                           @default(medium)  
+  serviceId         String?                               
+  categoryId        String?                               
+  subcategoryId     String?                                
+  slaId             String?                               
+  externalReference String?                                
+  customFields      Json?                                  
+}
+
+enum IncidentPriority {
+  low
+  medium
+  high
+  critical
+}
+
+enum IncidentStatus {
+  new
+  assigned
+  inProgress
+  resolved
+  closed
+  onHold
+  waitingForApproval
+  awaitingUser
+}
+
+enum ImpactLevel {
+  low
+  medium
+  high
+  critical
+}
+
+enum UrgencyLevel {
+  low
+  medium
+  high
+  critical
+}
+
+model CatalogueItem {
+  id                String         @id @default(uuid())
+  name              String
+  description       String?
+  type              CatalogueItemType
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  price             Float?         
+  categoryId        String?        
+  category          CatalogueCategory? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  tags              CatalogueTag[] 
+  availability      AvailabilityStatus  @default(available) 
+  customFields      Json?           
+  slaId             String?         
+  serviceId         String?         
+  externalReference String?         
+  customAttributes  Json?           
+  requestedBy       Request[]       
+}
+
+enum CatalogueItemType {
+  product
+  service
+  request
+  software
+}
+
+model CatalogueCategory {
+  id                String   @id @default(uuid())
+  name              String
+  description       String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  catalogueItems    CatalogueItem[]
+}
+
+model CatalogueTag {
+  id                Int      @id @default(autoincrement())
+  tag               String
+  catalogueItemId   String
+  catalogueItem     CatalogueItem @relation(fields: [catalogueItemId], references: [id], onDelete: Cascade)
+}
+
+model Request {
+  requestId         String      @id @default(uuid())
+  catalogueItemId   String?
+  catalogueItem     CatalogueItem? @relation(fields: [catalogueItemId], references: [id], onDelete: Cascade)
+  requestedByEmail  String      // Email of the user who made the request
+  status            RequestStatus   @default(new)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  fulfilledAt       DateTime?
+  dueDate           DateTime?
+  customFields      Json?       // Additional fields specific to each request
+}
+
+enum AvailabilityStatus {
+  available
+  unavailable
+  restricted
+  discontinued
+}
+
+enum RequestStatus {
+  new
+  pending
+  inProgress
+  fulfilled
+  cancelled
+}
+
