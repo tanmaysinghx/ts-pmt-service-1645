@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { Ticket, TicketStatus, TicketPriority, TicketType, Incident, ImpactLevel, UrgencyLevel } from '@prisma/client';
+import { TicketStatus, TicketPriority, TicketType, ImpactLevel, UrgencyLevel } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -17,7 +17,13 @@ export const createTicket = async (data: {
     groupId?: string;
     teamId?: string;
     serviceId?: string;
+    categoryId?: string;
+    subcategoryId?: string;
+    slaId?: string;
+    externalReference?: string;
+    attachmentIds?: string[];
     customFields?: any;
+    parentTicketId?: any;
 }) => {
     const ticket = await prisma.ticket.create({
         data: {
@@ -30,21 +36,29 @@ export const createTicket = async (data: {
             assignedToEmail: data.assignedToEmail,
             createdByEmail: data.createdByEmail,
             dueDate: data.dueDate,
-            groupId: data.groupId,
-            teamId: data.teamId,
-            serviceId: data.serviceId,
-            customFields: data.customFields,
+            groupId: data.groupId || null,
+            teamId: data.teamId || null,
+            serviceId: data.serviceId || null,
+            categoryId: data.categoryId || null,
+            subcategoryId: data.subcategoryId || null,
+            slaId: data.slaId || null,
+            externalReference: data.externalReference || null,
+            attachmentIds: data.attachmentIds,
+            customFields: data.customFields || {},
+            parentTicketId: data.parentTicketId,
         },
     });
+
     return ticket;
 };
+
 
 // Get a ticket by ID
 export const getTicketById = async (ticketId: string) => {
     const ticket = await prisma.ticket.findUnique({
         where: { ticketId },
         include: {
-            Incident: true,  // Include related incidents if needed
+            Incident: true,
         },
     });
     return ticket;

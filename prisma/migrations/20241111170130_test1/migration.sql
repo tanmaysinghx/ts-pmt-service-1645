@@ -1,27 +1,92 @@
-/*
-  Warnings:
+-- CreateTable
+CREATE TABLE `ProjectAssignment` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `projectId` VARCHAR(191) NOT NULL,
+    `teamId` VARCHAR(191) NOT NULL,
 
-  - Added the required column `projectManager` to the `Project` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `teamRole` to the `Team` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `teamSize` to the `Team` table without a default value. This is not possible if the table is not empty.
-  - Added the required column `role` to the `TeamMember` table without a default value. This is not possible if the table is not empty.
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
-*/
--- AlterTable
-ALTER TABLE `Group` ADD COLUMN `groupDescription` VARCHAR(191) NULL;
+-- CreateTable
+CREATE TABLE `Project` (
+    `projectId` VARCHAR(191) NOT NULL,
+    `projectName` VARCHAR(191) NOT NULL,
+    `projectOwner` VARCHAR(191) NOT NULL,
+    `projectDescription` VARCHAR(191) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+    `status` ENUM('ACTIVE', 'INACTIVE', 'COMPLETED', 'SUSPENDED') NOT NULL DEFAULT 'ACTIVE',
+    `startDate` DATETIME(3) NULL,
+    `endDate` DATETIME(3) NULL,
+    `budget` DOUBLE NULL,
+    `renewalHistory` JSON NOT NULL,
+    `projectManager` VARCHAR(191) NOT NULL,
 
--- AlterTable
-ALTER TABLE `Project` ADD COLUMN `budget` DOUBLE NULL,
-    ADD COLUMN `projectDescription` VARCHAR(191) NULL,
-    ADD COLUMN `projectManager` VARCHAR(191) NOT NULL;
+    PRIMARY KEY (`projectId`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
--- AlterTable
-ALTER TABLE `Team` ADD COLUMN `teamDescription` VARCHAR(191) NULL,
-    ADD COLUMN `teamRole` ENUM('DEVELOPMENT', 'QA', 'DESIGN', 'MANAGER', 'SUPPORT') NOT NULL,
-    ADD COLUMN `teamSize` INTEGER NOT NULL;
+-- CreateTable
+CREATE TABLE `Group` (
+    `groupId` VARCHAR(191) NOT NULL,
+    `groupName` VARCHAR(191) NOT NULL,
+    `groupOwner` VARCHAR(191) NOT NULL,
+    `groupDescription` VARCHAR(191) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
 
--- AlterTable
-ALTER TABLE `TeamMember` ADD COLUMN `role` VARCHAR(191) NOT NULL;
+    PRIMARY KEY (`groupId`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `GroupTag` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `tag` VARCHAR(191) NOT NULL,
+    `groupId` VARCHAR(191) NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Team` (
+    `teamId` VARCHAR(191) NOT NULL,
+    `teamName` VARCHAR(191) NOT NULL,
+    `teamOwner` VARCHAR(191) NOT NULL,
+    `teamDescription` VARCHAR(191) NULL,
+    `createdAt` DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    `updatedAt` DATETIME(3) NOT NULL,
+    `teamSize` INTEGER NOT NULL,
+    `teamRole` ENUM('DEVELOPMENT', 'QA', 'DESIGN', 'MANAGER', 'SUPPORT') NOT NULL,
+
+    PRIMARY KEY (`teamId`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `TeamTag` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `tag` VARCHAR(191) NOT NULL,
+    `teamId` VARCHAR(191) NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `TeamMember` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `member` VARCHAR(191) NOT NULL,
+    `teamId` VARCHAR(191) NOT NULL,
+    `role` VARCHAR(191) NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- CreateTable
+CREATE TABLE `Billing` (
+    `id` INTEGER NOT NULL AUTO_INCREMENT,
+    `billingId` VARCHAR(191) NOT NULL,
+    `projectId` VARCHAR(191) NOT NULL,
+
+    PRIMARY KEY (`id`)
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 -- CreateTable
 CREATE TABLE `Ticket` (
@@ -147,6 +212,21 @@ CREATE TABLE `Request` (
 
     PRIMARY KEY (`requestId`)
 ) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+-- AddForeignKey
+ALTER TABLE `ProjectAssignment` ADD CONSTRAINT `ProjectAssignment_teamId_fkey` FOREIGN KEY (`teamId`) REFERENCES `Team`(`teamId`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `GroupTag` ADD CONSTRAINT `GroupTag_groupId_fkey` FOREIGN KEY (`groupId`) REFERENCES `Group`(`groupId`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `TeamTag` ADD CONSTRAINT `TeamTag_teamId_fkey` FOREIGN KEY (`teamId`) REFERENCES `Team`(`teamId`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `TeamMember` ADD CONSTRAINT `TeamMember_teamId_fkey` FOREIGN KEY (`teamId`) REFERENCES `Team`(`teamId`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE `Billing` ADD CONSTRAINT `Billing_projectId_fkey` FOREIGN KEY (`projectId`) REFERENCES `Project`(`projectId`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE `Comment` ADD CONSTRAINT `Comment_ticketId_fkey` FOREIGN KEY (`ticketId`) REFERENCES `Ticket`(`ticketId`) ON DELETE CASCADE ON UPDATE CASCADE;

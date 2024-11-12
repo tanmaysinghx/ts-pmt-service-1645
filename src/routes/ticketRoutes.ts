@@ -3,7 +3,7 @@ import { createTicket, getTicketById, deleteTicket, listTickets, assignTicket, c
 
 const router = express.Router();
 
-router.post('/api/tickets', createTicket);
+router.post('/create-ticket', createTicket);
 router.get('/api/tickets/:ticketId', getTicketById);
 // router.put('/api/tickets/:ticketId', updateTicket);
 router.delete('/api/tickets/:ticketId', deleteTicket);
